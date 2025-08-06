@@ -24,11 +24,10 @@
   - Leaderboard-Modul hat jetzt eigenes CSS/JS
 
 ### 4. **Inkonsistente Pfade** 🔧
-- **Problem**: Stack Editor hat verschiedene Einstiegspunkte
+- **Problem**: Stack Editor hatte verschiedene Einstiegspunkte
   - `stack-editor/index.html`
-  - `stack-editor/stack-editor.html`
   - `stack-editor/stack_editor.html`
-- **Empfehlung**: Nur eine index.html behalten
+- **Lösung**: Veraltete Datei `stack_editor.html` entfernt und Navigation aktualisiert
 
 ### 5. **Theme-Toggle Inkonsistenz** 💡
 - **Problem**: Dashboard hat erweiterte Theme-Toggle-Animationen, andere Module nicht

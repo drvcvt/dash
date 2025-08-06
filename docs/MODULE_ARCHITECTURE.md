@@ -38,9 +38,9 @@ Das FOSS Stack Hub Projekt wurde in eine modulare Architektur aufgeteilt, um bes
 ### 3. Stack Editor Module (`modules/stack-editor/`)
 **Zweck:** Erstellung und Bearbeitung von Stacks
 **Dateien:**
-- `stack-editor.html` - Editor-Interface
-- `css/stack-editor.css` - Editor-spezifische Styles
-- `js/stack-editor.js` - Editor-Funktionalität
+- `index.html` - Editor-Interface
+- `stack-editor.css` - Editor-spezifische Styles
+- `stack-editor.js` - Editor-Funktionalität
 
 **Features:**
 - Drag & Drop Interface
@@ -125,7 +125,7 @@ Das Projekt nutzt ein client-seitiges Routing-System:
 const routes = {
   '/': 'modules/landing/index.html',
   '/dashboard': 'modules/dashboard/dashboard.html',
-  '/editor': 'modules/stack-editor/stack-editor.html',
+  '/editor': 'modules/stack-editor/index.html',
   '/stack/:id': 'modules/stack-viewer/stack-viewer.html',
   '/leaderboard': 'modules/leaderboard/leaderboard.html',
   '/profile/:username': 'modules/profile/profile.html'

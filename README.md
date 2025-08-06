@@ -54,7 +54,7 @@ dash/
 │   ├── dashboard/           # Dashboard ✅
 │   │   └── dashboard.html  # Dashboard HTML
 │   ├── stack-editor/        # Stack Editor ✅
-│   │   └── stack_editor.html # Editor HTML
+│   │   └── index.html       # Editor HTML
 │   ├── stack-viewer/        # Stack Viewer ✅
 │   │   └── stack-viewer.html # Viewer HTML
 │   ├── leaderboard/         # Leaderboard ✅ (Neu hinzugefügt)
