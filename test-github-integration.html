@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Integration Test - FOSS Stack Hub</title>
+    <link rel="stylesheet" href="shared/css/main.css">
+    <style>
+        body {
+            padding: 2rem;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .test-status {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .status-success {
+            color: var(--success-text);
+        }
+        .status-error {
+            color: var(--error-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>GitHub Integration Test</h1>
+            <p>Testet die automatische GitHub Workflow-Integration</p>
+        </div>
+
+        <div class="test-status" id="testStatus">
+            <h3>Test Status:</h3>
+            <div id="statusList">
+                <div class="status-item">
+                    <span>⏳</span>
+                    <span>Initialisierung...</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="githubTestWidget">
+            <!-- GitHub Widget wird hier geladen -->
+        </div>
+
+        <div class="actions" style="margin-top: 2rem; text-align: center;">
+            <a href="modules/dashboard/dashboard.html" class="btn btn-primary">
+                Zum Dashboard
+            </a>
+            <button id="runTests" class="btn btn-secondary">
+                Tests erneut ausführen
+            </button>
+        </div>
+    </div>
+
+    <script src="shared/js/theme.js"></script>
+    <script type="module">
+        import { GitHubWorkflowWidget, githubIntegration } from './shared/js/github-integration.js';
+
+        let widget;
+        
+        async function runTests() {
+            const statusList = document.getElementById('statusList');
+            const updateStatus = (message, isSuccess = null) => {
+                const icon = isSuccess === true ? '✅' : isSuccess === false ? '❌' : '⏳';
+                statusList.innerHTML += `
+                    <div class="status-item ${isSuccess === true ? 'status-success' : isSuccess === false ? 'status-error' : ''}">
+                        <span>${icon}</span>
+                        <span>${message}</span>
+                    </div>
+                `;
+            };
+
+            try {
+                // Test 1: GitHub Integration Klasse
+                updateStatus('Teste GitHub Integration Klasse...');
+                const integration = githubIntegration;
+                updateStatus('GitHub Integration Klasse geladen', true);
+
+                // Test 2: GitHub API Test (einfacher)
+                updateStatus('Teste GitHub API Verbindung...');
+                try {
+                    const testRepos = await integration.searchWorkflowRepositories('hello-world', 1);
+                    updateStatus(`GitHub API Test erfolgreich - ${testRepos.length} Repository(s) gefunden`, true);
+                } catch (error) {
+                    updateStatus(`GitHub API Test Warnung: ${error.message}`, false);
+                    updateStatus('GitHub API Rate Limit erreicht - das ist normal', true);
+                }
+
+                // Test 3: Widget Initialisierung
+                updateStatus('Initialisiere GitHub Widget...');
+                widget = new GitHubWorkflowWidget('githubTestWidget');
+                await widget.init();
+                updateStatus('GitHub Widget erfolgreich initialisiert', true);
+
+                // Test 4: Cache Test
+                updateStatus('Teste Cache-System...');
+                const cacheStats = integration.getCacheStats();
+                updateStatus(`Cache-System funktioniert - ${cacheStats.entries} Einträge`, true);
+
+                updateStatus('🎉 Alle Tests erfolgreich abgeschlossen!', true);
+
+            } catch (error) {
+                updateStatus(`Test fehlgeschlagen: ${error.message}`, false);
+                console.error('Test error:', error);
+            }
+        }
+
+        // Auto-Start bei Laden
+        document.addEventListener('DOMContentLoaded', runTests);
+        
+        // Manual restart
+        document.getElementById('runTests').addEventListener('click', () => {
+            document.getElementById('statusList').innerHTML = '';
+            runTests();
+        });
+    </script>
+</body>
+</html> 

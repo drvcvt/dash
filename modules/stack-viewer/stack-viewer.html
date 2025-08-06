@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stack Viewer - FOSS Stack Hub</title>
+    <meta name="description" content="Betrachte und entdecke Produktivitäts-Stacks in der FOSS Stack Hub Community.">
+    <link rel="stylesheet" href="../../shared/css/main.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="top-nav container">
+            <div class="nav-brand">
+                <h1 class="logo">
+                    FOSS Stack Hub
+                    <span class="version-badge">v2.1</span>
+                </h1>
+            </div>
+            
+            <div class="nav-menu">
+                <a href="#" class="nav-item" data-route="/">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    <span>Home</span>
+                </a>
+                <a href="#" class="nav-item" data-route="/dashboard">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-route="/editor">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    <span>Editor</span>
+                </a>
+                <a href="#" class="nav-item active" data-route="/stack/demo">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                    <span>Stacks</span>
+                </a>
+                <a href="#" class="nav-item" data-route="/leaderboard">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                    </svg>
+                    <span>Leaderboard</span>
+                </a>
+                <a href="#" class="nav-item" data-route="/profile">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span>Profil</span>
+                </a>
+            </div>
+            
+            <div class="nav-actions">
+                <button class="theme-toggle" aria-label="Theme umschalten">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                    </svg>
+                </button>
+                <div class="user-menu">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23007acc' rx='16'/%3E%3Ctext x='16' y='20' text-anchor='middle' fill='white' font-family='monospace' font-size='12' font-weight='600'%3EU%3C/text%3E%3C/svg%3E" alt="User avatar" class="user-avatar">
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Stack Viewer Content -->
+    <main class="container stack-viewer-main">
+        <div class="stack-header">
+            <div class="stack-breadcrumb">
+                <a href="#" data-route="/">Home</a>
+                <span>/</span>
+                <a href="#" data-route="/dashboard">Stacks</a>
+                <span>/</span>
+                <span>Digital Art Bundle</span>
+            </div>
+            
+            <div class="stack-hero">
+                <div class="stack-cover">
+                    <div class="stack-type-badge badge-primary">Procreate</div>
+                </div>
+                <div class="stack-info">
+                    <h1 class="stack-title">Digital Art Mastery Bundle</h1>
+                    <p class="stack-description">Eine komplette Sammlung von Procreate-Brushes, Farbpaletten und Templates für digitale Künstler. Über 200 handverlesene Assets für professionelle Ergebnisse.</p>
+                    <div class="stack-meta">
+                        <span class="stack-creator">
+                            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%237c3aed' rx='12'/%3E%3Ctext x='12' y='16' text-anchor='middle' fill='white' font-family='monospace' font-size='10' font-weight='600'%3EPM%3C/text%3E%3C/svg%3E" alt="PixelMaster" class="creator-avatar">
+                            <span>von @PixelMaster</span>
+                        </span>
+                        <span class="stack-date">vor 2 Tagen erstellt</span>
+                    </div>
+                    <div class="stack-stats">
+                        <span class="stat">
+                            <svg class="icon icon-stat" width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            4.8 (124 Bewertungen)
+                        </span>
+                        <span class="stat">
+                            <svg class="icon icon-stat" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+                            </svg>
+                            2.1k Downloads
+                        </span>
+                        <span class="stat">
+                            <svg class="icon icon-stat" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+                            </svg>
+                            47 Assets
+                        </span>
+                    </div>
+                    <div class="stack-actions">
+                        <button class="btn btn-primary btn-large">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+                            </svg>
+                            Download Stack
+                        </button>
+                        <button class="btn btn-secondary">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            Favorit
+                        </button>
+                        <button class="btn btn-ghost">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                            </svg>
+                            Teilen
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stack-content">
+            <div class="stack-tabs">
+                <button class="tab active" data-tab="assets">Assets</button>
+                <button class="tab" data-tab="readme">Beschreibung</button>
+                <button class="tab" data-tab="reviews">Bewertungen</button>
+                <button class="tab" data-tab="related">Ähnliche Stacks</button>
+            </div>
+
+            <div class="tab-content">
+                <div class="tab-panel active" id="assets">
+                    <h3>Enthaltene Assets</h3>
+                    <div class="assets-grid">
+                        <div class="asset-card">
+                            <div class="asset-preview"></div>
+                            <div class="asset-info">
+                                <h4>Watercolor Brushes</h4>
+                                <p>15 Pinsel für Aquarell-Effekte</p>
+                                <span class="asset-type">Procreate Brush</span>
+                            </div>
+                        </div>
+                        <div class="asset-card">
+                            <div class="asset-preview"></div>
+                            <div class="asset-info">
+                                <h4>Color Palettes</h4>
+                                <p>20 professionelle Farbpaletten</p>
+                                <span class="asset-type">Color Swatches</span>
+                            </div>
+                        </div>
+                        <div class="asset-card">
+                            <div class="asset-preview"></div>
+                            <div class="asset-info">
+                                <h4>Texture Pack</h4>
+                                <p>12 hochauflösende Texturen</p>
+                                <span class="asset-type">Templates</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../../shared/js/theme.js"></script>
+    <script src="../../shared/js/navigation.js"></script>
+    <script src="../../shared/js/standard-navigation.js"></script>
+</body>
+</html> 

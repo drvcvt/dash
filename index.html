@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOSS Stack Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0a0f24;
+            color: white;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .loader {
+            text-align: center;
+            position: relative;
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #007acc, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .loading-text {
+            opacity: 0.7;
+            margin-bottom: 2rem;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: #007acc;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .progress {
+            width: 200px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1px;
+            margin: 2rem auto 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #007acc, #059669);
+            width: 0%;
+            animation: progress 2s ease-out forwards;
+        }
+        
+        @keyframes progress {
+            to {
+                width: 100%;
+            }
+        }
+        
+        .error {
+            color: #dc2626;
+            background: rgba(220, 38, 38, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            margin-top: 1rem;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader">
+        <div class="logo">FOSS Stack Hub</div>
+        <div class="loading-text">Loading application...</div>
+        <div class="spinner"></div>
+        <div class="progress">
+            <div class="progress-bar"></div>
+        </div>
+        <div id="error" class="error" style="display: none;">
+            Failed to load application. Please check your connection and try again.
+        </div>
+    </div>
+
+    <script>
+        // Router for the modular application
+        class AppRouter {
+            constructor() {
+                this.routes = {
+                    '/': 'modules/landing/index.html',
+                    '/dashboard': 'modules/dashboard/dashboard.html',
+                    '/editor': 'modules/stack-editor/stack_editor.html',
+                    '/stack': 'modules/stack-viewer/stack-viewer.html',
+                    '/leaderboard': 'modules/leaderboard/leaderboard.html',
+                    '/profile': 'modules/profile/profile.html'
+                };
+                this.init();
+            }
+
+            init() {
+                // Simulate loading delay for smooth experience
+                setTimeout(() => {
+                    this.route();
+                }, 1500);
+            }
+
+            route() {
+                const path = window.location.pathname;
+                const search = window.location.search;
+                const hash = window.location.hash;
+                
+                // Determine which module to load
+                let targetRoute = '/';
+                
+                // Check for direct module access
+                if (path.includes('/dashboard')) {
+                    targetRoute = '/dashboard';
+                } else if (path.includes('/editor')) {
+                    targetRoute = '/editor';
+                } else if (path.includes('/stack')) {
+                    targetRoute = '/stack';
+                } else if (path.includes('/leaderboard')) {
+                    targetRoute = '/leaderboard';
+                } else if (path.includes('/profile')) {
+                    targetRoute = '/profile';
+                }
+                
+                // Handle URL parameters for module routing
+                const urlParams = new URLSearchParams(search);
+                if (urlParams.has('module')) {
+                    const module = urlParams.get('module');
+                    if (this.routes['/' + module]) {
+                        targetRoute = '/' + module;
+                    }
+                }
+                
+                this.loadModule(targetRoute, search, hash);
+            }
+
+            loadModule(route, search = '', hash = '') {
+                const modulePath = this.routes[route];
+                
+                if (!modulePath) {
+                    this.showError('Module not found: ' + route);
+                    return;
+                }
+
+                // Construct full URL
+                const fullUrl = modulePath + search + hash;
+                
+                // Update browser URL if needed
+                if (window.location.pathname === '/' && route !== '/') {
+                    window.history.replaceState({}, '', route + search + hash);
+                }
+                
+                // Redirect to module
+                window.location.href = fullUrl;
+            }
+
+            showError(message) {
+                const errorElement = document.getElementById('error');
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                
+                // Hide loading spinner
+                document.querySelector('.spinner').style.display = 'none';
+                document.querySelector('.progress').style.display = 'none';
+                document.querySelector('.loading-text').textContent = 'Error loading application';
+            }
+        }
+
+        // Handle direct navigation to modules
+        if (window.location.pathname !== '/' && !window.location.pathname.includes('/modules/')) {
+            // Direct route access - initialize router
+            new AppRouter();
+        } else if (window.location.pathname === '/') {
+            // Root access - go to landing page
+            setTimeout(() => {
+                window.location.href = 'modules/landing/index.html';
+            }, 1500);
+        } else {
+            // Already in a module - redirect to module file
+            setTimeout(() => {
+                const currentPath = window.location.pathname;
+                if (currentPath.includes('/modules/')) {
+                    // We're already in the right place, just reload if needed
+                    window.location.reload();
+                }
+            }, 500);
+        }
+
+        // Handle loading errors
+        window.addEventListener('error', (event) => {
+            console.error('Application error:', event.error);
+            const errorElement = document.getElementById('error');
+            errorElement.textContent = 'Application failed to load properly.';
+            errorElement.style.display = 'block';
+        });
+
+        // Preload critical resources
+        const preloadResources = [
+            'shared/css/main.css',
+            'shared/js/theme.js',
+            'shared/js/navigation.js'
+        ];
+
+        preloadResources.forEach(resource => {
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.href = resource;
+            link.as = resource.endsWith('.css') ? 'style' : 'script';
+            document.head.appendChild(link);
+        });
+    </script>
+</body>
+</html>

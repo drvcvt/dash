@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>4. Stack Editor</title>
+  <style>
+    :root{
+      --bg: #0a0c10;
+      --panel: #0f1318;
+      --muted: #161b22;
+      --text: #e8eef6;
+      --subtext: #9db0c9;
+      --accent: #6ea8fe;
+      --accent-strong:#4f8dff;
+      --ok:#37d399;
+      --warn:#ffb020;
+      --danger:#ff6b6b;
+      --ring: 0 0 0 2px color-mix(in oklab, var(--accent) 55%, transparent);
+      --radius: 12px;
+      --gap: 14px;
+      --shadow: 0 10px 28px rgba(0,0,0,.4);
+      --shadow-soft: 0 6px 20px rgba(0,0,0,.28);
+      --blur: saturate(1.1) blur(8px);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--text);
+      background:
+        radial-gradient(1200px 800px at 8% -10%, #131b26 0%, transparent 60%),
+        radial-gradient(900px 600px at 100% -10%, #0d131c 0%, transparent 60%),
+        linear-gradient(180deg, #090b0f 0%, var(--bg) 100%);
+      background-attachment: fixed;
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .app{
+      min-height:100%;
+      display:grid;
+      grid-template-rows: auto 1fr auto;
+    }
+    header{
+      position: sticky; top:0; z-index:10;
+      backdrop-filter: var(--blur);
+      background-color: color-mix(in oklab, var(--panel) 75%, transparent);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      padding: 12px clamp(14px, 3vw, 24px);
+      display:flex; align-items:center; gap:16px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px; flex:1 1 auto;
+      min-width:0;
+    }
+    .logo{
+      width:26px; height:26px; border-radius:8px;
+      background: conic-gradient(from 190deg at 70% 30%, var(--accent), #5df, #4ef, #3cf, var(--accent));
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.05), var(--shadow-soft);
+      flex: 0 0 auto;
+    }
+    .title{
+      font-weight:700; letter-spacing:.2px; font-size:15px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .subtitle{color:var(--subtext); font-size:12px}
+    .search{
+      display:flex; align-items:center; gap:8px;
+      background: #0c1117; border:1px solid rgba(255,255,255,.08);
+      border-radius:10px; padding:8px 10px; min-width: 180px;
+      color:var(--subtext);
+    }
+    .search input{
+      background: transparent; border: 0; outline: none; color: var(--text);
+      width: 200px; max-width: 30vw;
+    }
+    .actions{display:flex; gap:10px; flex-wrap: wrap}
+    .btn{
+      appearance:none; border:1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, #171c22, #12161b);
+      color:var(--text); border-radius:10px;
+      padding:9px 12px; font-weight:600; cursor:pointer;
+      display:inline-flex; align-items:center; gap:8px;
+      transition: transform .08s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease, opacity .2s ease;
+      font-size: 13px;
+    }
+    .btn[disabled]{opacity:.5; cursor:not-allowed}
+    .btn:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.14)}
+    .btn:active{transform: translateY(0)}
+    .btn.primary{
+      background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 24%, #111721), #0f1420);
+      border-color: color-mix(in oklab, var(--accent) 35%, transparent);
+      box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 25%, transparent) inset, var(--shadow-soft);
+    }
+    .btn.success{
+      background: linear-gradient(180deg, color-mix(in oklab, var(--ok) 24%, #111721), #0f1420);
+      border-color: color-mix(in oklab, var(--ok) 35%, transparent);
+      box-shadow: 0 0 0 1px color-mix(in oklab, var(--ok) 25%, transparent) inset, var(--shadow-soft);
+    }
+    .btn.ghost{
+      background: #0d1218;
+    }
+    main{
+      padding: clamp(14px, 3vw, 24px);
+      display:grid; gap: var(--gap);
+      grid-template-columns: 320px 1fr;
+    }
+    @media (max-width: 980px){
+      main{grid-template-columns: 1fr}
+      .actions{margin-left:auto}
+      .search input{max-width: 40vw}
+    }
+    .panel{
+      background: linear-gradient(180deg, #0f1319, #0d1116);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: clip;
+    }
+    .panel h2{
+      margin:0; padding:14px 14px 10px 14px;
+      font-size: 13px; color: var(--subtext); font-weight:700; letter-spacing:.4px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      background: linear-gradient(180deg, rgba(255,255,255,.02), transparent);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .panel .body{padding:12px}
+    .stack{
+      display:flex; flex-direction:column; gap:8px;
+    }
+    .step{
+      display:grid; grid-template-columns: 20px 1fr auto; gap:10px; align-items:center;
+      padding:10px 12px; border-radius:10px;
+      background: linear-gradient(180deg, #121823, #0f141c);
+      border:1px solid rgba(255,255,255,.07);
+      cursor:grab; user-select:none;
+      transition: background .2s, border-color .2s;
+    }
+    .step:hover{border-color: rgba(255,255,255,.12)}
+    .step.dragging{opacity:.6; transform: scale(.995)}
+    .step .dot{
+      width:8px; height:8px; border-radius:50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 10%, transparent);
+      justify-self:center;
+    }
+    .step .name{font-weight:600; outline:none}
+    .step .name[contenteditable="true"]:focus{box-shadow: var(--ring); border-radius:6px; padding:2px 4px; margin:-2px -4px}
+    .step .meta{color:var(--subtext); font-size:12px}
+    .handles{display:flex; gap:6px}
+    .handle{
+      width:26px; height:26px; border-radius:8px;
+      background:#0f141a; border:1px solid rgba(255,255,255,.08);
+      display:grid; place-items:center; color:var(--subtext); cursor:grab;
+    }
+    .drop-indicator{
+      height:8px; border-radius:6px; margin:6px 2px;
+      background:linear-gradient(90deg, transparent, color-mix(in oklab, var(--accent) 30%, transparent), transparent);
+      opacity:.0; transition: opacity .12s ease;
+    }
+    .drop-indicator.visible{opacity:.8}
+    .uploader{
+      display:grid; gap:10px;
+    }
+    .dropzone{
+      position:relative;
+      border: 2px dashed rgba(255,255,255,.15);
+      border-radius:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));
+      min-height:140px; display:grid; place-items:center;
+      color: var(--subtext);
+      transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+    .dropzone.dragover{
+      border-color: color-mix(in oklab, var(--accent) 65%, rgba(255,255,255,.2));
+      box-shadow: var(--ring);
+      background: linear-gradient(180deg, rgba(78, 132, 255, .12), rgba(78,132,255,.06));
+      color: color-mix(in oklab, var(--accent) 70%, white);
+    }
+    .dropzone input[type="file"]{
+      position:absolute; inset:0; opacity:0; cursor:pointer;
+    }
+    .dz-content{
+      text-align:center; padding:16px;
+    }
+    .dz-actions{margin-top:10px; display:flex; justify-content:center}
+    .filters{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:2px;
+    }
+    .chip{
+      border:1px solid rgba(255,255,255,.1);
+      background:#0b1118; color:var(--subtext);
+      padding:4px 8px; border-radius:999px; cursor:pointer; font-size:12px;
+      transition: border-color .2s, color .2s, background .2s;
+    }
+    .chip.active{border-color: color-mix(in oklab, var(--accent) 60%, rgba(255,255,255,.12)); color:#dbe7ff; background: #0d1420}
+    .assets{
+      display:grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap:10px;
+    }
+    .asset{
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:10px; overflow:hidden; background:#0f141a;
+      display:flex; flex-direction:column;
+      transition: border-color .2s, transform .1s ease;
+    }
+    .asset:focus-within, .asset:hover{border-color: rgba(255,255,255,.14); transform: translateY(-1px)}
+    .asset canvas{display:block; width:100%; aspect-ratio: 1 / 1; background:#0b0f14}
+    .asset .caption{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:8px; color:var(--subtext); font-size:12px;
+    }
+    .asset .tag{
+      padding:2px 6px; border-radius:20px; border:1px solid rgba(255,255,255,.08);
+      background:#0c1117; color:#cfe2ff; font-weight:700; letter-spacing:.2px; font-size:10px;
+    }
+    .workspace{
+      display:grid; gap: var(--gap);
+      grid-template-rows: auto 1fr auto;
+      min-height: 60vh;
+    }
+    .worktop{
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
+      padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.06);
+      background: linear-gradient(180deg, rgba(255,255,255,.02), transparent);
+    }
+    .worktop .breadcrumbs{color:var(--subtext); font-size:13px}
+    .canvas{
+      display:grid; place-items:center;
+      padding:12px;
+    }
+    .stage{
+      width:min(100%, 980px);
+      aspect-ratio: 16/9;
+      background: radial-gradient(900px 600px at 30% 10%, #132337, transparent 60%), #0b1118;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:14px; box-shadow: var(--shadow);
+      position:relative; overflow:hidden;
+    }
+    .stage.dragover{outline: 2px dashed color-mix(in oklab, var(--accent) 60%, transparent); outline-offset: -6px}
+    .stage .empty{
+      color:var(--subtext); display:grid; place-items:center; height:100%; text-align:center; padding:20px;
+    }
+    .guides{
+      position:absolute; inset:0; pointer-events:none;
+      background:
+        linear-gradient(transparent 15px, rgba(255,255,255,.04) 15px) 0 0/100% 16px,
+        linear-gradient(90deg, transparent 15px, rgba(255,255,255,.04) 15px) 0 0/16px 100%;
+      opacity:.0; transition: opacity .2s ease;
+    }
+    .stage:hover .guides{opacity:.7}
+    .publishing{
+      display:flex; gap:10px; align-items:center; justify-content:flex-end;
+      padding:10px 12px; border-top:1px solid rgba(255,255,255,.06);
+      background: linear-gradient(0deg, rgba(255,255,255,.02), transparent);
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px; font-size:12px;
+      border:1px solid rgba(255,255,255,.12); background:#0e141b; color:var(--subtext);
+    }
+    .muted{color:var(--subtext)}
+    footer{
+      padding: 10px clamp(14px, 3vw, 24px);
+      color: var(--subtext);
+      display:flex; align-items:center; gap:10px; justify-content:space-between;
+      border-top: 1px solid rgba(255,255,255,.06);
+      background: linear-gradient(180deg, #0b0d10, #0a0c0f);
+      font-size: 12px;
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      background:#0c1218; border:1px solid rgba(255,255,255,.12); border-bottom-color: rgba(255,255,255,.2);
+      padding:2px 6px; border-radius:6px; color:#dbe7ff; font-size:12px;
+      box-shadow: inset 0 -1px 0 rgba(255,255,255,.06);
+    }
+    .empty-cta{
+      position:absolute; right:12px; bottom:12px; display:flex; gap:6px;
+    }
+    .counter{font-variant-numeric: tabular-nums}
+    
+    /* Standard Navigation Styling für Stack-Editor */
+    .nav-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--subtext);
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+    .nav-item:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.08);
+      text-decoration: none;
+    }
+    .nav-item.active {
+      color: var(--accent);
+      background: color-mix(in oklab, var(--accent) 15%, transparent);
+      border-color: color-mix(in oklab, var(--accent) 25%, transparent);
+    }
+    .nav-item svg {
+      width: 14px;
+      height: 14px;
+    }
+    .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0}
+    /* focus outline */
+    .btn:focus-visible, .handle:focus-visible, .dropzone:focus-within, .chip:focus-visible, .asset:focus-within{
+      outline:none; box-shadow: var(--ring);
+    }
+  </style>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "sortablejs": "https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/modular/sortable.esm.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div class="app">
+    <!-- Standard Top Navigation (wie auf allen anderen Seiten) -->
+    <nav style="
+      position: sticky; top: 0; z-index: 20;
+      backdrop-filter: var(--blur);
+      background-color: color-mix(in oklab, var(--panel) 85%, transparent);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      padding: 8px clamp(14px, 3vw, 24px);
+      display: flex; align-items: center; gap: 16px;
+    ">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="logo" style="width: 24px; height: 24px; border-radius: 6px;"></div>
+        <div style="font-weight: 700; font-size: 14px;">FOSS Stack Hub</div>
+      </div>
+      
+      <div class="nav-menu" style="
+        display: flex; gap: 8px; margin-left: auto; margin-right: auto;
+      ">
+        <!-- Wird automatisch von standard-navigation.js befüllt -->
+      </div>
+      
+      <div style="display: flex; gap: 8px;">
+        <button class="btn ghost" style="font-size: 12px; padding: 6px 8px;" data-route="/dashboard">← Zurück</button>
+      </div>
+    </nav>
+
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div style="min-width:0">
+          <div class="title">4. Stack Editor</div>
+          <div class="subtitle">Minimal • Monochrom mit blauen Akzenten</div>
+        </div>
+      </div>
+      <label class="search" title="Suchen (Assets & Schritte)">
+        🔎
+        <input id="globalSearch" type="search" placeholder="Suche…" aria-label="Suche"/>
+      </label>
+      <div class="actions">
+        <button class="btn ghost" id="btnNewStep" title="Neuen Schritt hinzufügen">➕ Schritt</button>
+        <button class="btn primary" id="btnImport" title="Beispiel-Assets generieren">⤒ Import</button>
+        <button class="btn success" id="btnPublish" title="Veröffentlichen">⬆ Veröffentlichen</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2>
+          Workflow
+          <span class="muted counter" id="stepCount">0</span>
+        </h2>
+        <div class="body">
+          <div class="stack" id="stack"></div>
+          <div class="drop-indicator" id="stackDropIndicator" aria-hidden="true"></div>
+          <div class="filters" style="margin-top:8px">
+            <button class="chip" id="btnExpandAll" title="Alle Details anzeigen">Aufklappen</button>
+            <button class="chip" id="btnCollapseAll" title="Alle Details verbergen">Zuklappen</button>
+            <button class="chip" id="btnClearSteps" title="Alle Schritte entfernen">Leeren</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>
+          Assets
+          <span class="muted counter" id="assetCount">0</span>
+        </h2>
+        <div class="body uploader">
+          <div class="dropzone" id="dropzone" tabindex="0" aria-label="Dateien hierher ziehen oder klicken, um auszuwählen">
+            <input id="fileInput" type="file" multiple aria-hidden="true" />
+            <div class="dz-content">
+              <div style="font-weight:700">Dateien hierher ziehen</div>
+              <div class="subtitle" style="margin-top:4px">oder klicken, um auszuwählen</div>
+              <div class="dz-actions" style="margin-top:10px">
+                <button class="btn" type="button" id="btnBrowse">Dateien wählen…</button>
+              </div>
+              <div class="filters" style="justify-content:center; margin-top:10px">
+                <button class="chip active" data-kind="all">Alle</button>
+                <button class="chip" data-kind="image">Bilder</button>
+                <button class="chip" data-kind="audio">Audio</button>
+                <button class="chip" data-kind="video">Video</button>
+                <button class="chip" data-kind="text">Text</button>
+                <button class="chip" data-kind="application">Sonstiges</button>
+              </div>
+            </div>
+          </div>
+          <div class="assets" id="assets" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="panel" style="grid-column: 1 / -1;">
+        <div class="workspace">
+          <div class="worktop">
+            <div class="breadcrumbs">Stack • Editor • Vorschau</div>
+            <div style="display:flex; gap:8px; align-items:center">
+              <span class="pill" id="statusPill">Bereit</span>
+              <button class="chip" id="btnGuides">Raster</button>
+              <button class="chip" id="btnClearStage">Vorschau leeren</button>
+            </div>
+          </div>
+          <div class="canvas">
+            <div class="stage" id="stage" aria-label="Vorschau-Bühne">
+              <div class="guides" id="guides" hidden></div>
+              <div class="empty" id="stageEmpty">
+                Lege Assets ab oder erstelle Schritte – die Vorschau erscheint hier.
+                <div class="empty-cta">
+                  <button class="btn" id="btnAddDemoTile">Demo-Tile</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="publishing">
+            <span class="pill">Letzte Änderung: <span id="lastSaved">–</span></span>
+            <button class="btn success" id="btnPublishBottom">Veröffentlichen</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div>Tipps: Ziehen zum Sortieren. Shift + Scroll = horizontales Scrollen. Esc = Abbrechen.</div>
+      <div>
+        <span class="kbd">⌘</span> + <span class="kbd">S</span> Speichern
+      </div>
+    </footer>
+  </div>
+
+  <script type="module">
+    import Sortable from "sortablejs";
+
+    // References
+    const stackEl = document.getElementById('stack');
+    const stackDropIndicator = document.getElementById('stackDropIndicator');
+    const btnNewStep = document.getElementById('btnNewStep');
+    const btnPublish = document.getElementById('btnPublish');
+    const btnPublishBottom = document.getElementById('btnPublishBottom');
+    const statusPill = document.getElementById('statusPill');
+    const lastSaved = document.getElementById('lastSaved');
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const btnBrowse = document.getElementById('btnBrowse');
+    const assetsEl = document.getElementById('assets');
+    const stage = document.getElementById('stage');
+    const stageEmpty = document.getElementById('stageEmpty');
+    const btnImport = document.getElementById('btnImport');
+    const globalSearch = document.getElementById('globalSearch');
+    const stepCount = document.getElementById('stepCount');
+    const assetCount = document.getElementById('assetCount');
+    const btnExpandAll = document.getElementById('btnExpandAll');
+    const btnCollapseAll = document.getElementById('btnCollapseAll');
+    const btnClearSteps = document.getElementById('btnClearSteps');
+    const btnGuides = document.getElementById('btnGuides');
+    const guides = document.getElementById('guides');
+    const btnClearStage = document.getElementById('btnClearStage');
+    const btnAddDemoTile = document.getElementById('btnAddDemoTile');
+
+    // Minimal local state
+    const state = {
+      steps: [],
+      assets: [],
+      publishCounter: 0,
+      assetFilter: 'all'
+    };
+
+    // Utilities
+    const nowStr = () => new Date().toLocaleString();
+    const uid = () => Math.random().toString(36).slice(2,9);
+    const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+    const save = (silent=false) => {
+      localStorage.setItem('stack-editor-state', JSON.stringify(state));
+      lastSaved.textContent = nowStr();
+      if(!silent){
+        flashStatus('Gespeichert', 'ok');
+      }
+    };
+
+    const load = () => {
+      try{
+        const raw = localStorage.getItem('stack-editor-state');
+        if(raw){
+          const parsed = JSON.parse(raw);
+          if(Array.isArray(parsed.steps)) state.steps = parsed.steps;
+          if(Array.isArray(parsed.assets)) state.assets = parsed.assets;
+          if(typeof parsed.publishCounter === 'number') state.publishCounter = parsed.publishCounter;
+          if(typeof parsed.assetFilter === 'string') state.assetFilter = parsed.assetFilter;
+        } else {
+          state.steps = [
+            { id: uid(), name: 'Entwurf', info: 'Start' },
+            { id: uid(), name: 'Review', info: 'Feedback' },
+            { id: uid(), name: 'Freigabe', info: 'QA' }
+          ];
+        }
+      }catch(e){}
+    };
+
+    // Step rendering
+    function renderSteps(filterText=''){
+      stackEl.innerHTML = '';
+      const q = filterText.trim().toLowerCase();
+      const list = state.steps.filter(s => !q || s.name.toLowerCase().includes(q) || (s.info||'').toLowerCase().includes(q));
+      list.forEach(step => {
+        const el = document.createElement('div');
+        el.className = 'step';
+        el.draggable = true;
+        el.dataset.id = step.id;
+        el.innerHTML = `
+          <div class="dot" aria-hidden="true"></div>
+          <div>
+            <div class="name" contenteditable="true" spellcheck="false" aria-label="Schrittname">${escapeHtml(step.name)}</div>
+            <div class="meta" contenteditable="true" spellcheck="false" aria-label="Beschreibung">${escapeHtml(step.info || '')}</div>
+          </div>
+          <div class="handles">
+            <button class="handle" title="Duplizieren" data-action="dup">⧉</button>
+            <button class="handle" title="Löschen" data-action="del">✕</button>
+          </div>
+        `;
+        const nameEl = el.querySelector('.name');
+        const metaEl = el.querySelector('.meta');
+        const saveName = () => {
+          const s = state.steps.find(s => s.id === step.id);
+          if(s){ s.name = nameEl.textContent.trim(); touch(); }
+        };
+        const saveMeta = () => {
+          const s = state.steps.find(s => s.id === step.id);
+          if(s){ s.info = metaEl.textContent.trim(); touch(); }
+        };
+        nameEl.addEventListener('input', saveName);
+        nameEl.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); nameEl.blur(); } });
+        metaEl.addEventListener('input', saveMeta);
+        metaEl.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); metaEl.blur(); } });
+
+        el.querySelectorAll('.handle').forEach(btn=>{
+          btn.addEventListener('click', (ev)=>{
+            ev.stopPropagation();
+            const act = btn.dataset.action;
+            if(act === 'del'){
+              state.steps = state.steps.filter(s => s.id !== step.id);
+              renderSteps(q); touch();
+            } else if(act === 'dup'){
+              const copy = { ...step, id: uid(), name: step.name + ' (Kopie)' };
+              const idx = state.steps.findIndex(s => s.id === step.id);
+              state.steps.splice(idx+1, 0, copy);
+              renderSteps(q); touch();
+            }
+          });
+        });
+        stackEl.appendChild(el);
+      });
+      stepCount.textContent = state.steps.length;
+      setupSortable();
+      updateStage();
+    }
+
+    function setupSortable(){
+      if(stackEl._sortable){ return; }
+      Sortable.create(stackEl, {
+        animation: 160,
+        ghostClass: 'dragging',
+        handle: '.step',
+        onStart(){ stackDropIndicator.classList.add('visible'); },
+        onEnd(evt){
+          stackDropIndicator.classList.remove('visible');
+          const order = [...stackEl.children].map(ch => ch.dataset.id);
+          state.steps.sort((a,b)=> order.indexOf(a.id) - order.indexOf(b.id));
+          touch();
+        }
+      });
+      stackEl._sortable = true;
+    }
+
+    // Assets
+    function renderAssets(filterText=''){
+      assetsEl.innerHTML = '';
+      const q = filterText.trim().toLowerCase();
+      const kind = state.assetFilter;
+      const filtered = state.assets.filter(a => {
+        const byKind = kind === 'all' ? true : a.kind === kind;
+        const byText = !q || a.name.toLowerCase().includes(q) || a.kind.toLowerCase().includes(q);
+        return byKind && byText;
+      });
+      filtered.forEach(a=>{
+        const card = document.createElement('div');
+        card.className = 'asset';
+        const c = document.createElement('canvas');
+        c.width = 256; c.height = 256;
+        drawPlaceholderPreview(c.getContext('2d'), a);
+        const caption = document.createElement('div');
+        caption.className = 'caption';
+        caption.innerHTML = `<span title="${escapeAttr(a.name)}">${truncate(a.name, 18)}</span><span class="tag">${a.kind.toUpperCase()}</span>`;
+        card.appendChild(c);
+        card.appendChild(caption);
+        card.tabIndex = 0;
+        // Drag onto stage [MDN Drag and Drop API docs: developer.mozilla.org]
+        // Reference: HTML Drag and Drop API - details on setData and drag images [developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API)
+        card.draggable = true;
+        card.addEventListener('dragstart', (e)=>{
+          e.dataTransfer.setData('text/plain', a.id);
+          e.dataTransfer.setData('text/html', `<asset id="${a.id}"></asset>`);
+          e.dataTransfer.effectAllowed = 'copy';
+        });
+        // Keyboard "send to stage"
+        card.addEventListener('keydown', (e)=>{
+          if(e.key === 'Enter'){
+            addStageTile(a);
+            touch();
+          }
+        });
+        assetsEl.appendChild(card);
+      });
+      assetCount.textContent = state.assets.length;
+    }
+
+    function truncate(s, n){
+      if(s.length <= n) return s;
+      return s.slice(0, n-1) + '…';
+    }
+
+    // Procedural preview generator (no external assets)
+    function drawPlaceholderPreview(ctx, asset){
+      const {width, height} = ctx.canvas;
+      const h = hash(asset.id + asset.kind);
+      const c1 = hueToRGB((h % 360), 65, 18);
+      const c2 = hueToRGB(((h+60) % 360), 75, 12);
+      const grd = ctx.createLinearGradient(0,0,width,height);
+      grd.addColorStop(0, c1);
+      grd.addColorStop(1, c2);
+      ctx.fillStyle = grd;
+      ctx.fillRect(0,0,width,height);
+
+      // soft noise pattern
+      for(let i=0;i<240;i++){
+        const x = (noise(h+i*13))*width;
+        const y = (noise(h+i*7))*height;
+        const r = (noise(h+i*17)*0.4+0.1)* (Math.min(width,height)/16);
+        ctx.beginPath();
+        ctx.arc(x,y,r,0,Math.PI*2);
+        ctx.fillStyle = `rgba(255,255,255,${0.02 + r/50})`;
+        ctx.fill();
+      }
+
+      // label
+      ctx.fillStyle = 'rgba(255,255,255,.9)';
+      ctx.font = '600 20px ui-sans-serif, system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText(asset.kind.toUpperCase(), width/2, height/2 + 8);
+
+      // corner badge
+      ctx.fillStyle = 'rgba(0,0,0,.25)';
+      ctx.fillRect(0,0,100,28);
+      ctx.fillStyle = 'rgba(255,255,255,.9)';
+      ctx.font = '12px ui-sans-serif, system-ui';
+      ctx.textAlign = 'left';
+      ctx.fillText(truncate(asset.name, 14), 8, 18);
+    }
+
+    function hueToRGB(h, s=70, l=40){
+      return hslToRgb(h/360, s/100, l/100);
+    }
+    function hslToRgb(h, s, l){
+      const a = s * Math.min(l, 1-l);
+      const f = n=>{
+        const k = (n + h*12)%12;
+        const color = l - a * Math.max(Math.min(k-3, 9-k, 1), -1);
+        return Math.round(255*color);
+      };
+      return `rgb(${f(0)} ${f(8)} ${f(4)})`;
+    }
+    function hash(str){
+      let h=0; for(let i=0;i<str.length;i++) h = (h<<5) - h + str.charCodeAt(i) | 0;
+      return Math.abs(h);
+    }
+    function noise(n){
+      const x = Math.sin(n) * 43758.5453;
+      return x - Math.floor(x);
+    }
+    function escapeHtml(s){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+    function escapeAttr(s){ return escapeHtml(s).replace(/"/g, '&quot;'); }
+
+    // Stage interactions: accept assets to create a "tile"
+    stage.addEventListener('dragover', (e)=>{
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      stage.classList.add('dragover');
+    });
+    stage.addEventListener('dragleave', ()=>{
+      stage.classList.remove('dragover');
+    });
+    stage.addEventListener('drop', (e)=>{
+      e.preventDefault();
+      stage.classList.remove('dragover');
+      // MDN drag data transfer usage [developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API)
+      const id = e.dataTransfer.getData('text/plain');
+      const asset = state.assets.find(a=>a.id===id);
+      if(asset){
+        addStageTile(asset, e);
+        touch();
+      }
+    });
+
+    function addStageTile(asset, e){
+      if(document.getElementById('stageEmpty')){
+        stageEmpty.remove();
+      }
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      const srect = stage.getBoundingClientRect();
+      const targetLeft = e ? (e.clientX - srect.left) : srect.width * (Math.random()*0.7+0.1);
+      const targetTop  = e ? (e.clientY - srect.top)  : srect.height * (Math.random()*0.6+0.1);
+
+      tile.style.position='absolute';
+      tile.style.left = clamp(targetLeft, 0, srect.width - 180) + 'px';
+      tile.style.top  = clamp(targetTop, 0, srect.height - 110) + 'px';
+      tile.style.width='200px';
+      tile.style.aspectRatio='16/10';
+      tile.style.border='1px solid rgba(255,255,255,.12)';
+      tile.style.borderRadius='12px';
+      tile.style.overflow='hidden';
+      tile.style.background='#0c1218';
+      tile.style.boxShadow='0 8px 20px rgba(0,0,0,.35)';
+      tile.style.cursor='move';
+      tile.tabIndex=0;
+      tile.setAttribute('aria-label', `Tile: ${asset.name}`);
+
+      const header = document.createElement('div');
+      header.style.position='absolute';
+      header.style.left='6px'; header.style.top='6px';
+      header.style.display='flex'; header.style.gap='6px';
+      header.style.zIndex='2';
+      const btnDel = document.createElement('button');
+      btnDel.className='chip'; btnDel.textContent='Löschen';
+      btnDel.addEventListener('click', ()=>{ tile.remove(); updateStage(); touch(); });
+      const btnSm = document.createElement('button');
+      btnSm.className='chip'; btnSm.textContent='-';
+      const btnLg = document.createElement('button');
+      btnLg.className='chip'; btnLg.textContent='+';
+      btnSm.addEventListener('click', ()=>{ resizeTile(tile, -20); touch(); });
+      btnLg.addEventListener('click', ()=>{ resizeTile(tile, +20); touch(); });
+      header.append(btnSm, btnLg, btnDel);
+
+      const cnv = document.createElement('canvas');
+      cnv.width = 400; cnv.height = 250;
+      drawPlaceholderPreview(cnv.getContext('2d'), asset);
+      cnv.style.width='100%'; cnv.style.height='100%';
+
+      tile.appendChild(cnv);
+      tile.appendChild(header);
+
+      // Draggable within stage (mouse & touch)
+      let sx=0, sy=0, ox=0, oy=0, dragging=false;
+      const onDown = (e)=>{
+        dragging=true;
+        const rect = tile.getBoundingClientRect();
+        sx = ('touches' in e ? e.touches[0].clientX : e.clientX);
+        sy = ('touches' in e ? e.touches[0].clientY : e.clientY);
+        ox = rect.left; oy = rect.top;
+        e.preventDefault();
+      };
+      const onMove = (e)=>{
+        if(!dragging) return;
+        const cx = ('touches' in e ? e.touches[0].clientX : e.clientX);
+        const cy = ('touches' in e ? e.touches[0].clientY : e.clientY);
+        const dx = cx - sx; const dy = cy - sy;
+        const srect2 = stage.getBoundingClientRect();
+        let nx = ox + dx - srect2.left;
+        let ny = oy + dy - srect2.top;
+        nx = clamp(nx, 0, srect2.width - tile.offsetWidth);
+        ny = clamp(ny, 0, srect2.height - tile.offsetHeight);
+        tile.style.left = nx + 'px';
+        tile.style.top  = ny + 'px';
+      };
+      const onUp = ()=>{
+        if(dragging){ dragging=false; touch(); }
+      };
+      tile.addEventListener('mousedown', onDown);
+      tile.addEventListener('touchstart', onDown, {passive:false});
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('touchmove', onMove, {passive:false});
+      window.addEventListener('mouseup', onUp);
+      window.addEventListener('touchend', onUp);
+
+      stage.appendChild(tile);
+    }
+
+    function resizeTile(tile, delta){
+      const w = tile.getBoundingClientRect().width + delta;
+      const srect = stage.getBoundingClientRect();
+      const newW = clamp(w, 120, Math.min(420, srect.width));
+      tile.style.width = newW + 'px';
+    }
+
+    function updateStage(){
+      const hasTile = [...stage.children].some(ch => ch.className === 'tile');
+      const emptyEl = document.getElementById('stageEmpty');
+      if(!hasTile && !emptyEl){
+        const el = document.createElement('div');
+        el.id='stageEmpty'; el.className='empty';
+        el.innerHTML = 'Lege Assets ab oder erstelle Schritte – die Vorschau erscheint hier.';
+        stage.appendChild(el);
+      }
+      if(hasTile && emptyEl){ emptyEl.remove(); }
+    }
+
+    // Upload handling:
+    // Implementation follows browser DnD patterns from MDN [developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API).
+    const acceptKinds = ['image','audio','video','text','application'];
+    function handleFiles(files){
+      [...files].forEach(file=>{
+        const kind = (file.type || 'application/octet-stream').split('/')[0];
+        const safeKind = acceptKinds.includes(kind) ? kind : 'application';
+        const asset = { id: uid(), name: file.name || 'Unbenannt', kind: safeKind, size: file.size || 0 };
+        optimisticProgress(asset);
+      });
+    }
+
+    function optimisticProgress(asset){
+      const temp = document.createElement('div');
+      temp.className='asset';
+      const progress = document.createElement('div');
+      progress.style.height='6px';
+      progress.style.background='rgba(255,255,255,.06)';
+      progress.style.margin='10px';
+      progress.style.borderRadius='999px';
+      const bar = document.createElement('div');
+      bar.style.height='100%';
+      bar.style.width='0%';
+      bar.style.borderRadius='999px';
+      bar.style.background='linear-gradient(90deg, var(--accent), var(--accent-strong))';
+      progress.appendChild(bar);
+
+      const holder = document.createElement('div');
+      holder.style.display='grid';
+      holder.style.placeItems='center';
+      holder.style.aspectRatio='1/1';
+      const spinner = document.createElement('div');
+      spinner.style.width='40px'; spinner.style.height='40px';
+      spinner.style.border='3px solid rgba(255,255,255,.15)';
+      spinner.style.borderTopColor='var(--accent)';
+      spinner.style.borderRadius='50%';
+      spinner.style.animation='spin 1s linear infinite';
+      holder.appendChild(spinner);
+      injectSpinKeyframesOnce();
+
+      const cap = document.createElement('div');
+      cap.className='caption';
+      cap.innerHTML = `<span>${truncate(asset.name,18)}</span><span class="tag">NEU</span>`;
+
+      temp.appendChild(holder);
+      temp.appendChild(progress);
+      temp.appendChild(cap);
+      assetsEl.prepend(temp);
+
+      let p=0;
+      const t = setInterval(()=>{
+        p += Math.random()*22+8;
+        if(p>=100){ p=100; clearInterval(t);
+          state.assets.unshift(asset);
+          renderAssets(globalSearch.value || '');
+          touch();
+        }
+        bar.style.width = p+'%';
+      }, 180);
+    }
+
+    let spinInjected = false;
+    function injectSpinKeyframesOnce(){
+      if(spinInjected) return;
+      const style = document.createElement('style');
+      style.textContent='@keyframes spin{to{transform:rotate(360deg)}}';
+      document.head.appendChild(style);
+      spinInjected = true;
+    }
+
+    // Dropzone events
+    ;['dragenter','dragover'].forEach(ev=>{
+      dropzone.addEventListener(ev, (e)=>{ e.preventDefault(); dropzone.classList.add('dragover'); });
+    });
+    ;['dragleave','drop'].forEach(ev=>{
+      dropzone.addEventListener(ev, (e)=>{ e.preventDefault(); dropzone.classList.remove('dragover'); });
+    });
+    dropzone.addEventListener('drop', (e)=>{
+      const files = e.dataTransfer?.files;
+      if(files && files.length){ handleFiles(files); }
+    });
+    btnBrowse.addEventListener('click', ()=> fileInput.click());
+    fileInput.addEventListener('change', ()=> {
+      if(fileInput.files?.length){ handleFiles(fileInput.files); fileInput.value=''; }
+    });
+
+    // Filters (assets)
+    document.querySelectorAll('.dz-content .chip[data-kind]').forEach(chip=>{
+      chip.addEventListener('click', ()=>{
+        document.querySelectorAll('.dz-content .chip[data-kind]').forEach(c=>c.classList.remove('active'));
+        chip.classList.add('active');
+        state.assetFilter = chip.dataset.kind;
+        renderAssets(globalSearch.value || '');
+        touch();
+      });
+    });
+
+    // Buttons
+    btnNewStep.addEventListener('click', ()=>{
+      state.steps.push({ id: uid(), name: 'Neuer Schritt', info: 'Beschreibung' });
+      renderSteps(globalSearch.value || '');
+      touch();
+      const last = stackEl.lastElementChild?.querySelector('.name'); last?.focus();
+    });
+
+    btnExpandAll.addEventListener('click', ()=>{
+      stackEl.querySelectorAll('.meta').forEach(m => m.style.display = '');
+    });
+    btnCollapseAll.addEventListener('click', ()=>{
+      stackEl.querySelectorAll('.meta').forEach(m => m.style.display = 'none');
+    });
+    btnClearSteps.addEventListener('click', ()=>{
+      if(confirm('Alle Schritte wirklich entfernen?')){ state.steps = []; renderSteps(globalSearch.value || ''); touch(); }
+    });
+
+    btnGuides.addEventListener('click', ()=>{
+      const on = guides.hasAttribute('hidden');
+      if(on){ guides.removeAttribute('hidden'); btnGuides.classList.add('active'); }
+      else { guides.setAttribute('hidden',''); btnGuides.classList.remove('active'); }
+    });
+
+    btnClearStage.addEventListener('click', ()=>{
+      stage.querySelectorAll('.tile').forEach(t => t.remove());
+      updateStage(); touch();
+    });
+
+    btnAddDemoTile.addEventListener('click', ()=>{
+      const a = state.assets[0] || { id: uid(), name: 'Demo.png', kind: 'image' };
+      if(!state.assets.length){ state.assets.unshift(a); renderAssets(globalSearch.value || ''); }
+      addStageTile(a);
+      touch();
+    });
+
+    function doPublish(){
+      state.publishCounter++;
+      flashStatus('Veröffentlicht', 'ok');
+      save(true);
+    }
+    btnPublish.addEventListener('click', doPublish);
+    btnPublishBottom.addEventListener('click', doPublish);
+    btnImport.addEventListener('click', ()=>{
+      // quick import: procedurally generate 3 assets without files
+      const demo = [
+        { id: uid(), name: 'Gradient.png', kind: 'image' },
+        { id: uid(), name: 'Whoosh.wav', kind: 'audio' },
+        { id: uid(), name: 'Intro.mp4', kind: 'video' },
+      ];
+      state.assets.unshift(...demo);
+      renderAssets(globalSearch.value || '');
+      touch();
+    });
+
+    // Global Search (steps + assets)
+    globalSearch.addEventListener('input', ()=>{
+      const q = globalSearch.value;
+      renderSteps(q);
+      renderAssets(q);
+    });
+
+    // Status feedback
+    function flashStatus(text, kind='info'){
+      statusPill.textContent = text;
+      if(kind==='ok'){
+        statusPill.style.borderColor = 'color-mix(in oklab, var(--ok) 40%, rgba(255,255,255,.12))';
+        statusPill.style.color = '#d6ffee';
+        statusPill.style.background = 'linear-gradient(180deg, color-mix(in oklab, var(--ok) 20%, #0e141b), #0e141b)';
+      } else if(kind==='warn'){
+        statusPill.style.borderColor = 'color-mix(in oklab, var(--warn) 40%, rgba(255,255,255,.12))';
+        statusPill.style.color = '#fff5d6';
+        statusPill.style.background = 'linear-gradient(180deg, color-mix(in oklab, var(--warn) 20%, #0e141b), #0e141b)';
+      } else {
+        statusPill.removeAttribute('style');
+      }
+      setTimeout(()=>{ statusPill.textContent='Bereit'; statusPill.removeAttribute('style'); }, 1400);
+    }
+
+    function touch(){
+      save(true);
+      lastSaved.textContent = nowStr();
+    }
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', (e)=>{
+      if((e.metaKey || e.ctrlKey) && e.key.toLowerCase()==='s'){
+        e.preventDefault(); save();
+      }
+      if(e.key === 'Escape'){
+        // Simple escape behavior: remove dragover visuals
+        stage.classList.remove('dragover');
+      }
+    });
+
+    // Initialize
+    load();
+    renderSteps();
+    renderAssets();
+    lastSaved.textContent = nowStr();
+
+    // CITED SOURCES:
+    // We used patterns and API usage from MDN:
+    // - HTML Drag and Drop API (dataTransfer.setData, drop effects) [developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API)
+    // DOM creation and insertion references:
+    // - Document.createElement() usage [developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement)
+    // - Node.appendChild() notes [developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild)
+  </script>
+  
+  <!-- Navigation Integration -->
+  <script src="../../shared/js/navigation.js"></script>
+  <script src="../../shared/js/standard-navigation.js"></script>
+</body>
+</html>

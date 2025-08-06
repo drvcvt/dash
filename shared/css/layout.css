@@ -1,0 +1,418 @@
+/* =============================================================================
+   FOSS Stack Hub - Layout System
+   ============================================================================= */
+
+/* =============================================================================
+   Header & Navigation
+   ============================================================================= */
+
+.header {
+  background: var(--bg-color);
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  gap: var(--space-lg);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-shrink: 0;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.version-badge {
+  background: var(--primary-color);
+  color: white;
+  padding: 0.125rem 0.375rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex: 1;
+  margin-left: var(--space-xl);
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+/* User Menu */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+}
+
+/* =============================================================================
+   Grid System
+   ============================================================================= */
+
+.grid {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.grid-2 { 
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); 
+  gap: var(--space-lg);
+}
+.grid-3 { 
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); 
+  gap: var(--space-lg);
+}
+.grid-4 { 
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); 
+  gap: var(--space-lg);
+}
+
+@media (max-width: 1024px) {
+  .grid-4 { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+}
+
+/* Auto-fit Grid */
+.grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-lg);
+}
+
+.grid-auto-sm {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-md);
+}
+
+/* =============================================================================
+   Layout Containers
+   ============================================================================= */
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  min-height: calc(100vh - var(--header-height));
+}
+
+.sidebar-layout {
+  display: grid;
+  grid-template-columns: 1fr var(--sidebar-width);
+  gap: var(--space-2xl);
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-lg);
+}
+
+.sidebar-layout-reverse {
+  grid-template-columns: var(--sidebar-width) 1fr;
+}
+
+@media (max-width: 1024px) {
+  .sidebar-layout,
+  .sidebar-layout-reverse {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+}
+
+/* Dashboard specific layout */
+.dashboard-main {
+  padding: var(--space-lg);
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr var(--sidebar-width);
+  gap: var(--space-2xl);
+  margin-top: var(--space-lg);
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+}
+
+/* =============================================================================
+   Section Layouts
+   ============================================================================= */
+
+.section {
+  padding: var(--space-xl) 0;
+}
+
+.section-large {
+  padding: var(--space-2xl) 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+  gap: var(--space-md);
+}
+
+.section-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.section-subtitle {
+  color: var(--text-light);
+  margin-bottom: var(--space-xl);
+  font-size: var(--font-size-lg);
+}
+
+/* =============================================================================
+   Hero Sections
+   ============================================================================= */
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2xl);
+  align-items: center;
+  padding: var(--space-2xl) 0;
+  min-height: 60vh;
+}
+
+.hero-centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-2xl) 0;
+  text-align: center;
+}
+
+.hero-content {
+  max-width: 500px;
+}
+
+.hero-centered .hero-content {
+  max-width: 600px;
+}
+
+.hero-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+    min-height: auto;
+    text-align: center;
+  }
+  
+  .hero-content {
+    max-width: 100%;
+  }
+}
+
+/* =============================================================================
+   Content Layouts
+   ============================================================================= */
+
+.content-wrapper {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+}
+
+.prose {
+  max-width: 65ch;
+  margin: 0 auto;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+  margin-top: var(--space-xl);
+  margin-bottom: var(--space-md);
+}
+
+.prose h1:first-child,
+.prose h2:first-child,
+.prose h3:first-child {
+  margin-top: 0;
+}
+
+.prose p {
+  margin-bottom: var(--space-md);
+}
+
+.prose ul, .prose ol {
+  margin-bottom: var(--space-md);
+  padding-left: var(--space-lg);
+}
+
+.prose ul {
+  list-style-type: disc;
+}
+
+.prose ol {
+  list-style-type: decimal;
+}
+
+.prose li {
+  margin-bottom: var(--space-xs);
+}
+
+/* =============================================================================
+   Responsive Navigation
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .nav-menu {
+    display: none;
+  }
+  
+  .nav-actions {
+    gap: var(--space-xs);
+  }
+  
+  .logo {
+    font-size: 1.25rem;
+  }
+  
+  .top-nav {
+    height: 60px;
+  }
+  
+  .main-layout {
+    min-height: calc(100vh - 60px);
+  }
+}
+
+/* =============================================================================
+   Footer
+   ============================================================================= */
+
+.footer {
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border-light);
+  padding: var(--space-2xl) 0 var(--space-xl);
+  margin-top: auto;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-xl);
+  margin-bottom: var(--space-xl);
+}
+
+.footer-section h5,
+.footer-section h6 {
+  margin-bottom: var(--space-md);
+  color: var(--text-color);
+}
+
+.footer-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.footer-subtitle {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+}
+
+.footer-text {
+  color: var(--text-light);
+  line-height: 1.6;
+}
+
+.footer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.footer-nav a {
+  color: var(--text-light);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.footer-nav a:hover {
+  color: var(--primary-color);
+}
+
+.footer-bottom {
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--border-light);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* =============================================================================
+   Spacing Utilities
+   ============================================================================= */
+
+.m-0 { margin: 0; }
+.mt-0 { margin-top: 0; }
+.mr-0 { margin-right: 0; }
+.mb-0 { margin-bottom: 0; }
+.ml-0 { margin-left: 0; }
+
+.m-auto { margin: auto; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.my-auto { margin-top: auto; margin-bottom: auto; }
+
+.p-0 { padding: 0; }
+.pt-0 { padding-top: 0; }
+.pr-0 { padding-right: 0; }
+.pb-0 { padding-bottom: 0; }
+.pl-0 { padding-left: 0; } 
