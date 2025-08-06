@@ -54,7 +54,7 @@ Alle Seiten haben jetzt diese **exakt gleiche** Navigation:
 - Standard Navigation im Header
 - Active State: "Stacks"
 
-✅ **Stack Editor** (`modules/stack-editor/stack_editor.html`)
+✅ **Stack Editor** (`modules/stack-editor/index.html`)
 - **NEU**: Zusätzliche Top-Navigation über dem Editor-Header
 - Standard Navigation eingefügt
 - Active State: "Editor"

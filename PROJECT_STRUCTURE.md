@@ -40,7 +40,7 @@ dash/
 │   │   └── dashboard.html    # Dashboard HTML
 │   │
 │   ├── stack-editor/         # Stack Editor
-│   │   └── stack_editor.html # Editor HTML
+│   │   └── index.html       # Editor HTML
 │   │
 │   ├── stack-viewer/         # Stack Viewer
 │   ├── leaderboard/          # Leaderboard-Modul  
