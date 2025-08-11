@@ -46,7 +46,7 @@ Alle HTML-Seiten der FOSS Stack Hub Anwendung sind jetzt vollständig miteinande
   - Breadcrumb-Navigation mit Router-Links
   - Router-System eingebunden
 
-### ✏️ Stack Editor (`modules/stack-editor/stack_editor.html`)
+### ✏️ Stack Editor (`modules/stack-editor/index.html`)
 - **Status**: ✅ Erweiterte Integration
 - **Navigation zu**: Dashboard (Back-Button)
 - **Features**:
